@@ -177,7 +177,7 @@ function PhotoPage() {
         width={1080}
         videoConstraints={videoConstraints}
         style={{
-          objectFit: "fill",
+          objectFit: "cover",
         }}
       />
       <canvas
