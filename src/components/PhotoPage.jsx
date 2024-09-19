@@ -57,7 +57,10 @@ useEffect(() => {
   // Capture image from webcam
   const handleStartCapture = () => {
     setProcessing(true);
-    const imageSrc = webcamRef.current.getScreenshot();
+    const imageSrc = webcamRef.current.getScreenshot({
+      width: 1920, // High-resolution capture
+      height: 1080,
+    });
     if (imageSrc) {
       console.log("Image captured:", imageSrc);
       setCapturedImage(imageSrc);
@@ -98,71 +101,6 @@ useEffect(() => {
       });
   };
 
-  //   // Combine background and processed images
-  //   const combineImages = async (backgroundImageSrc) => {
-  //     return new Promise((resolve, reject) => {
-  //       const canvas = canvasRef.current;
-  //       const ctx = canvas.getContext('2d');
-  //       const background = new Image();
-  //       const foreground = new Image();
-
-  //       background.src = backgroundImageSrc;
-  //       foreground.src = processedImage;
-
-  //       background.onload = () => {
-  //         ctx.clearRect(0, 0, canvas.width, canvas.height);
-  //         ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
-
-  //         foreground.onload = () => {
-  //           ctx.drawImage(foreground, 0, 0, canvas.width, canvas.height);
-  //           const combinedImage = canvas.toDataURL('image/jpeg');
-  //           console.log("Combined Image:", combinedImage);
-  //           resolve(combinedImage);
-  //         };
-  //         foreground.onerror = reject;
-  //       };
-  //       background.onerror = reject;
-  //     });
-  //   };
-
-  // Combine background and processed images
-  // const combineImages = async (backgroundImageSrc) => {
-  //   return new Promise((resolve, reject) => {
-  //     const canvas = canvasRef.current;
-  //     const ctx = canvas.getContext("2d");
-  //     const background = new Image();
-  //     const foreground = new Image();
-
-  //     background.src = backgroundImageSrc;
-  //     foreground.src = processedImage;
-
-  //     background.onload = () => {
-  //       // Set canvas size to match background image
-  //       canvas.width = background.width;
-  //       canvas.height = background.height;
-
-  //       ctx.clearRect(0, 0, canvas.width, canvas.height);
-  //       ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
-
-  //       foreground.onload = () => {
-  //         // Draw the foreground image at the bottom keeping aspect ratio
-  //         const aspectRatio = foreground.width / foreground.height;
-  //         const targetWidth = canvas.width;
-  //         const targetHeight = targetWidth / aspectRatio;
-
-  //         // Place the foreground image at the bottom
-  //         const offsetY = canvas.height - targetHeight; // Align at the bottom
-
-  //         ctx.drawImage(foreground, 0, offsetY, targetWidth, targetHeight);
-  //         const combinedImage = canvas.toDataURL("image/jpeg", 1.0); // Max quality
-  //         console.log("Combined Image:", combinedImage);
-  //         resolve(combinedImage);
-  //       };
-  //       foreground.onerror = reject;
-  //     };
-  //     background.onerror = reject;
-  //   });
-  // };
 
 
   const combineImages = async (backgroundImageSrc) => {
@@ -189,6 +127,13 @@ useEffect(() => {
   
         // Draw background image covering the entire canvas
         ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
+
+
+         // Get high-quality blob
+         getCanvasImageAsBlob(canvas).then((blob) => {
+          const combinedImageURL = URL.createObjectURL(blob); // Create URL from blob
+          resolve(combinedImageURL); // Resolve the high-quality combined image
+        });
   
         // After the background is drawn, scale and position the foreground
         foreground.onload = () => {
@@ -206,7 +151,7 @@ useEffect(() => {
           ctx.drawImage(foreground, fgOffsetX, fgOffsetY, fgTargetWidth, fgTargetHeight);
   
           // Convert canvas to data URL and resolve
-          const combinedImage = canvas.toDataURL("image/jpeg");
+          const combinedImage = canvas.toDataURL("image/jpeg", 1.0);
           console.log("Combined Image:", combinedImage);
           resolve(combinedImage);
         };
@@ -352,28 +297,78 @@ useEffect(() => {
   );
 }
 
+// // Helper function to convert dataURL to Blob
+// const dataURLtoBlob = (dataURL) => {
+//   const arr = dataURL.split(",");
+//   const mime = arr[0].match(/:(.*?);/)[1];
+//   const bstr = atob(arr[1]);
+//   let n = bstr.length;
+//   const u8arr = new Uint8Array(n);
+//   while (n--) {
+//     u8arr[n] = bstr.charCodeAt(n);
+//   }
+//   return new Blob([u8arr], { type: mime });
+// };
+
+// // Helper function to convert ArrayBuffer to base64
+// const arrayBufferToBase64 = (buffer) => {
+//   let binary = "";
+//   const bytes = new Uint8Array(buffer);
+//   const len = bytes.byteLength;
+//   for (let i = 0; i < len; i++) {
+//     binary += String.fromCharCode(bytes[i]);
+//   }
+//   return window.btoa(binary);
+// };
+
+
+
 // Helper function to convert dataURL to Blob
 const dataURLtoBlob = (dataURL) => {
-  const arr = dataURL.split(",");
-  const mime = arr[0].match(/:(.*?);/)[1];
-  const bstr = atob(arr[1]);
-  let n = bstr.length;
-  const u8arr = new Uint8Array(n);
-  while (n--) {
-    u8arr[n] = bstr.charCodeAt(n);
+  const [header, base64Data] = dataURL.split(",");
+  const mime = header.match(/:(.*?);/)[1];  // Get the MIME type from the dataURL
+  const byteString = atob(base64Data);  // Decode base64 to binary
+  const byteLength = byteString.length;
+  const uint8Array = new Uint8Array(byteLength);
+
+  // Write binary data to array
+  for (let i = 0; i < byteLength; i++) {
+    uint8Array[i] = byteString.charCodeAt(i);
   }
-  return new Blob([u8arr], { type: mime });
+
+  // Create and return a Blob from the binary data
+  return new Blob([uint8Array], { type: mime });
 };
 
 // Helper function to convert ArrayBuffer to base64
 const arrayBufferToBase64 = (buffer) => {
   let binary = "";
   const bytes = new Uint8Array(buffer);
-  const len = bytes.byteLength;
-  for (let i = 0; i < len; i++) {
+  const length = bytes.byteLength;
+
+  // Convert the array buffer to a binary string
+  for (let i = 0; i < length; i++) {
     binary += String.fromCharCode(bytes[i]);
   }
+
+  // Convert the binary string to base64
   return window.btoa(binary);
 };
 
+// Ensure the canvas image is encoded with maximum quality
+const getCanvasImageAsBlob = (canvas) => {
+  return new Promise((resolve) => {
+    canvas.toBlob(
+      (blob) => {
+        resolve(blob);
+      },
+      "image/jpeg", // Ensure we are saving as JPEG
+      1.0 // Set quality to maximum (1.0)
+    );
+  });
+};
+
+
 export default PhotoPage;
+
+
