@@ -8,7 +8,8 @@ const CLIPDROP_API_KEY =
 const videoConstraints = {
   width: 1920,
   height: 1080,
-  facingMode: "user",
+  // facingMode: "user",
+  facingMode: { exact: "environment" }, // Rear camera
 };
 
 function PhotoPage() {
@@ -20,6 +21,7 @@ function PhotoPage() {
   const [processedImage, setProcessedImage] = useState(null);
   const [processing, setProcessing] = useState(false);
   const [showPresets, setShowPresets] = useState(false);
+  const [selectedPreset, setSelectedPreset] = useState(null); 
   const [countdown, setCountdown] = useState(null); // State for countdown
  // Capture image after countdown
  useEffect(() => {
@@ -167,12 +169,21 @@ function PhotoPage() {
     }
   };
 
+
+    // Handle preset selection
+    const handlePresetSelection = (preset, index) => {
+      setBackgroundImage(preset); // Set selected background image
+      setSelectedPreset(index); // Track the selected preset
+    };
+
   return (
     <div>
       <Webcam
         audio={false}
         height={1920}
         ref={webcamRef}
+        mirrored={true}
+        screenshotQuality={0.92}
         screenshotFormat="image/jpeg"
         width={1080}
         videoConstraints={videoConstraints}
@@ -206,22 +217,53 @@ function PhotoPage() {
         {showPresets && (
           <div className="preset-container">
             <div className="preset-container-box">
-              <button onClick={() => setBackgroundImage("/wal/1.png")}>
+              <button onClick={() => handlePresetSelection("/wal/1.png", 0)}  
+                 style={{
+                  border:
+                    selectedPreset === 0 ? "10px solid #FAB200" : "1px solid gray", // Highlight selected preset
+                }}
+                >
                 Preset 1
               </button>
-              <button onClick={() => setBackgroundImage("/wal/2.png")}>
+              <button onClick={() => handlePresetSelection("/wal/2.png", 1)}
+                 style={{
+                  border:
+                    selectedPreset === 1 ? "10px solid #FAB200" : "1px solid gray", // Highlight selected preset
+                }}
+                >
                 Preset 2
               </button>
-              <button onClick={() => setBackgroundImage("/wal/3.png")}>
+              <button onClick={() => handlePresetSelection("/wal/3.png", 2)}
+                 style={{
+                  border:
+                    selectedPreset === 2 ? "10px solid #FAB200" : "1px solid gray", // Highlight selected preset
+                }}
+                >
                 Preset 3
               </button>
-              <button onClick={() => setBackgroundImage("/wal/4.png")}>
+              <button onClick={() => handlePresetSelection("/wal/4.png", 3)}
+                 style={{
+                  border:
+                    selectedPreset === 3 ? "10px solid #FAB200" : "1px solid gray", // Highlight selected preset
+                }}
+                >
                 Preset 4
               </button>
-              <button onClick={() => setBackgroundImage("/wal/5.png")}>
+              <button onClick={() => handlePresetSelection("/wal/5.png", 4)}
+                 style={{
+                  border:
+                    selectedPreset === 4 ? "10px solid #FAB200" : "1px solid gray", // Highlight selected preset
+                }}
+                >
                 Preset 5
               </button>
-              <button onClick={() => setBackgroundImage("/wal/6.png")}>
+              <button onClick={() => handlePresetSelection("/wal/6.png", 5)}
+                
+                style={{
+                  border:
+                    selectedPreset === 5 ? "10px solid #FAB200" : "1px solid gray", // Highlight selected preset
+                }}
+                >
                 Preset 6
               </button>
             </div>
@@ -235,6 +277,9 @@ function PhotoPage() {
             </div>
           </div>
         )}
+        
+
+
       </div>
     </div>
   );

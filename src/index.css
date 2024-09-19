@@ -146,7 +146,7 @@ font-weight: 700;
 .preset-container{
   width: 100vw;
   /* background-color: red; */
-  height: 800px;
+
   display: flex;
   flex-direction: column;
   align-items: center;
