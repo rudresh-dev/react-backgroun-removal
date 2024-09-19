@@ -285,3 +285,16 @@ font-weight: 700;
 }
 
 
+
+
+.coutdowm{
+  position: fixed;
+  font-size: 80rem !important;
+  background-color: #FAB200;
+  font-size: 208px;
+  padding: 40px;
+  border-radius: 100px;
+  color: white;
+  bottom: 50vh;
+  left: 40vw;
+}

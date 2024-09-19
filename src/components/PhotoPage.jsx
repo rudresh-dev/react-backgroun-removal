@@ -1,5 +1,4 @@
-
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import Webcam from "react-webcam";
 import { useNavigate } from "react-router-dom";
 
@@ -21,6 +20,27 @@ function PhotoPage() {
   const [processedImage, setProcessedImage] = useState(null);
   const [processing, setProcessing] = useState(false);
   const [showPresets, setShowPresets] = useState(false);
+  const [countdown, setCountdown] = useState(null); // State for countdown
+
+  // Capture image after countdown
+  useEffect(() => {
+    if (countdown === 0) {
+      handleStartCapture(); // Trigger image capture when countdown finishes
+    }
+  }, [countdown]);
+
+  // Start the 3-2-1 countdown
+  const startCountdown = () => {
+    setCountdown(3); // Set countdown to 3 initially
+    let count = 3;
+    const countdownInterval = setInterval(() => {
+      count -= 1;
+      setCountdown(count);
+      if (count === 0) {
+        clearInterval(countdownInterval); // Stop countdown when it reaches 0
+      }
+    }, 1000);
+  };
 
   // Capture image from webcam
   const handleStartCapture = () => {
@@ -168,10 +188,18 @@ function PhotoPage() {
       ></canvas>
 
       <div className="gg88" style={{ position: "absolute", bottom: "10px" }}>
+        <div className="coutdowm">
+          {countdown !== null && (
+            <h1 className="" style={{ fontSize: "190px" }}>
+              {countdown}
+            </h1>
+          )}
+        </div>
+
         {/* Show capture button first */}
         {!showPresets && (
           <div className="capture-btn-gg">
-            <button onClick={handleStartCapture}>Capture</button>
+            <button onClick={startCountdown}>Capture</button>
           </div>
         )}
 
