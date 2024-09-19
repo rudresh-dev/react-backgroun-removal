@@ -6,8 +6,8 @@ const CLIPDROP_API_KEY =
   "c962c39d9a6f890e9e70f4751c2ac3d7a968b2cacf444eb1b5bdfa3988ceac5b6198ddf56f451ca755aceb6b35f42686"; // Replace with your actual API key
 
 const videoConstraints = {
-  width: 720,
-  height: 1280,
+  width: 1920,
+  height: 1080,
   facingMode: "user",
 };
 
@@ -21,13 +21,13 @@ function PhotoPage() {
   const [processing, setProcessing] = useState(false);
   const [showPresets, setShowPresets] = useState(false);
   const [countdown, setCountdown] = useState(null); // State for countdown
-
-  // Capture image after countdown
-  useEffect(() => {
-    if (countdown === 0) {
-      handleStartCapture(); // Trigger image capture when countdown finishes
-    }
-  }, [countdown]);
+ // Capture image after countdown
+ useEffect(() => {
+  if (countdown === 0) {
+    handleStartCapture(); // Trigger image capture when countdown finishes
+    setCountdown(null); // Reset countdown to hide it
+  }
+}, [countdown]);
 
   // Start the 3-2-1 countdown
   const startCountdown = () => {
@@ -142,7 +142,7 @@ function PhotoPage() {
           const offsetY = canvas.height - targetHeight; // Align at the bottom
 
           ctx.drawImage(foreground, 0, offsetY, targetWidth, targetHeight);
-          const combinedImage = canvas.toDataURL("image/jpeg");
+          const combinedImage = canvas.toDataURL("image/jpeg", 1.0); // Max quality
           console.log("Combined Image:", combinedImage);
           resolve(combinedImage);
         };
@@ -182,20 +182,19 @@ function PhotoPage() {
       />
       <canvas
         ref={canvasRef}
-        width={1080}
-        height={1920}
+     
         style={{ display: "none" }}
       ></canvas>
 
       <div className="gg88" style={{ position: "absolute", bottom: "10px" }}>
-        <div className="coutdowm">
+   
           {countdown !== null && (
+                 <div className="coutdowm">
             <h1 className="" style={{ fontSize: "190px" }}>
               {countdown}
             </h1>
+            </div>
           )}
-        </div>
-
         {/* Show capture button first */}
         {!showPresets && (
           <div className="capture-btn-gg">
