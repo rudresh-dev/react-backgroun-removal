@@ -8,8 +8,8 @@ const CLIPDROP_API_KEY =
 const videoConstraints = {
   width: 1920,
   height: 1080,
-  // facingMode: "user",
-  facingMode: { exact: "environment" }, // Rear camera
+  facingMode: "environment",
+  // facingMode: { exact: "environment" }, // Rear camera
 };
 
 function PhotoPage() {
