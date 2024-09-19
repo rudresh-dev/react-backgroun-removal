@@ -9,6 +9,7 @@ const videoConstraints = {
   width: 1920,
   height: 1080,
   facingMode: "environment",
+  frameRate: { ideal: 15, max: 30 }, 
   // facingMode: { exact: "environment" }, // Rear camera
 };
 
@@ -30,6 +31,15 @@ function PhotoPage() {
     setCountdown(null); // Reset countdown to hide it
   }
 }, [countdown]);
+
+
+useEffect(() => {
+  return () => {
+    if (webcamRef.current) {
+      webcamRef.current.stream.getTracks().forEach(track => track.stop());
+    }
+  };
+}, []);
 
   // Start the 3-2-1 countdown
   const startCountdown = () => {
@@ -116,35 +126,87 @@ function PhotoPage() {
   //   };
 
   // Combine background and processed images
+  // const combineImages = async (backgroundImageSrc) => {
+  //   return new Promise((resolve, reject) => {
+  //     const canvas = canvasRef.current;
+  //     const ctx = canvas.getContext("2d");
+  //     const background = new Image();
+  //     const foreground = new Image();
+
+  //     background.src = backgroundImageSrc;
+  //     foreground.src = processedImage;
+
+  //     background.onload = () => {
+  //       // Set canvas size to match background image
+  //       canvas.width = background.width;
+  //       canvas.height = background.height;
+
+  //       ctx.clearRect(0, 0, canvas.width, canvas.height);
+  //       ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
+
+  //       foreground.onload = () => {
+  //         // Draw the foreground image at the bottom keeping aspect ratio
+  //         const aspectRatio = foreground.width / foreground.height;
+  //         const targetWidth = canvas.width;
+  //         const targetHeight = targetWidth / aspectRatio;
+
+  //         // Place the foreground image at the bottom
+  //         const offsetY = canvas.height - targetHeight; // Align at the bottom
+
+  //         ctx.drawImage(foreground, 0, offsetY, targetWidth, targetHeight);
+  //         const combinedImage = canvas.toDataURL("image/jpeg", 1.0); // Max quality
+  //         console.log("Combined Image:", combinedImage);
+  //         resolve(combinedImage);
+  //       };
+  //       foreground.onerror = reject;
+  //     };
+  //     background.onerror = reject;
+  //   });
+  // };
+
+
   const combineImages = async (backgroundImageSrc) => {
     return new Promise((resolve, reject) => {
       const canvas = canvasRef.current;
       const ctx = canvas.getContext("2d");
+  
       const background = new Image();
       const foreground = new Image();
-
+  
       background.src = backgroundImageSrc;
       foreground.src = processedImage;
-
+  
       background.onload = () => {
-        // Set canvas size to match background image
+        // Set canvas size to match the background image
         canvas.width = background.width;
         canvas.height = background.height;
-
+ 
+        console.log("widthh",canvas.width)
+        console.log("height",canvas.height)
+ 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
+       
+  
+        // Draw background image covering the entire canvas
         ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
-
+  
+        // After the background is drawn, scale and position the foreground
         foreground.onload = () => {
-          // Draw the foreground image at the bottom keeping aspect ratio
-          const aspectRatio = foreground.width / foreground.height;
-          const targetWidth = canvas.width;
-          const targetHeight = targetWidth / aspectRatio;
-
-          // Place the foreground image at the bottom
-          const offsetY = canvas.height - targetHeight; // Align at the bottom
-
-          ctx.drawImage(foreground, 0, offsetY, targetWidth, targetHeight);
-          const combinedImage = canvas.toDataURL("image/jpeg", 1.0); // Max quality
+          // Maintain aspect ratio of the captured (foreground) image
+          const fgAspectRatio = foreground.width / foreground.height;
+ 
+          const fgTargetWidth = canvas.width *4; // Scale foreground image to 80% of canvas width //864
+          const fgTargetHeight = fgTargetWidth / fgAspectRatio; //1728
+  
+          // Center the foreground image vertically and horizontally
+          const fgOffsetX = (canvas.width - fgTargetWidth) / 2;
+          const fgOffsetY = (canvas.height - fgTargetHeight) / 2;
+  
+          // Draw foreground image on the canvas
+          ctx.drawImage(foreground, fgOffsetX, fgOffsetY, fgTargetWidth, fgTargetHeight);
+  
+          // Convert canvas to data URL and resolve
+          const combinedImage = canvas.toDataURL("image/jpeg");
           console.log("Combined Image:", combinedImage);
           resolve(combinedImage);
         };
@@ -153,6 +215,7 @@ function PhotoPage() {
       background.onerror = reject;
     });
   };
+
   // Handle next button click
   // Handle next button click
   const handleNext = async () => {
@@ -186,7 +249,11 @@ function PhotoPage() {
         screenshotQuality={0.92}
         screenshotFormat="image/jpeg"
         width={1080}
+        // videoConstraints={videoConstraints}
         videoConstraints={videoConstraints}
+        onUserMediaError={(err) => console.error("Camera error:", err)}
+        onUserMedia={() => console.log("Camera accessed successfully")}
+      
         style={{
           objectFit: "cover",
         }}
